@@ -7,23 +7,63 @@ import java.util.*;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 import model.ChatFile;
 
 public class Server {
 	private static Set<DataOutputStream> clientDOSs = new HashSet<>();
+	private static ServerSocket serverSocket;
+	private static volatile boolean stopRequested = false; // Để stop server một cách đúng đắn
 
-	public static void startServer(int port) throws IOException {
+	
+//	public static void listen(int port) throws IOException {
+//		System.out.println("GutGutChat SERVER IS LISTENING ON PORT " + port);
+//		serverSocket = new ServerSocket(port);
+//		
+//		// Luôn mở để lắng nghe client connect
+//		while (true) {
+//			new ClientHandler(serverSocket.accept()).start();
+//		}
+//	}
+	
+	public static void startServer(int port) throws IOException{
 		System.out.println("GutGutChat SERVER IS LISTENING ON PORT " + port);
-		ServerSocket serverSocket = new ServerSocket(port);
-		
-		// Luôn mở để lắng nghe client connect
-		while (true) {
-			new ClientHandler(serverSocket.accept()).start();
-		}
-	}
+		serverSocket = new ServerSocket(port);
+		stopRequested = false; // Reset the stop flag
 
+		SwingWorker<Void, String> worker = new SwingWorker<Void, String>() {
+			@Override
+			protected Void doInBackground() throws Exception {
+				while (!isCancelled() && !stopRequested) {
+					// long-running task
+					// Luôn mở để lắng nghe client connect
+					while (true) {
+						new ClientHandler(serverSocket.accept()).start();
+					}
+				}
+				return null;
+			}
+		};
+
+		worker.execute();
+	}
+	
+	public static void stopServer() {
+		 if (serverSocket != null) {
+			 stopRequested = true;
+			 
+             try {
+            	 System.out.println("GutGutChat SERVER STOPPED.");
+                 // Close the ServerSocket to stop the server
+                 serverSocket.close();
+             } catch (IOException e) {
+                 e.printStackTrace();
+             }
+         }
+	}
 
 	private static class ClientHandler extends Thread {
 		private Socket socket;

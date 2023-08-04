@@ -13,12 +13,13 @@ import java.util.ArrayList;
 
 import model.ChatFile;
 import model.ChatMessage;
+import util.ChatPort;
 import util.RandomIDGenerator;
 
 public class ClientChatForm {
 	// Socket & send file
 	private static final String SERVER_IP = "127.0.0.1"; // Change to the server IP
-	private static final int SERVER_PORT = 12345; // Change to the server port
+	private static final int SERVER_PORT = ChatPort.getPort();
 	private Socket socket;
 	private DataInputStream dis;
 	private DataOutputStream dos;
@@ -53,14 +54,21 @@ public class ClientChatForm {
 		// FRAME
 		frame = new JFrame("GutGut Chat");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(800, 800);
+		frame.setSize(400, 600);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+
+		// Menu
+		JMenuBar jmenuBar = new JMenuBar();
+		JMenu jmenuAccount = new JMenu("Tài khoản");
+		JMenuItem jmniLogout = new JMenuItem("Thoát");
+		jmenuAccount.add(jmniLogout);
+		jmenuBar.add(jmenuAccount);
 
 		// JPanel để chứa message
 		jpMessage = new JPanel();
 		jpMessage.setLayout(new BoxLayout(jpMessage, BoxLayout.Y_AXIS));
 		jpMessage.setBorder(new EmptyBorder(10, 10, 10, 10));
-		Dimension preferredSize = new Dimension(300, 350);
+		Dimension preferredSize = new Dimension(250, 250);
 		jpMessage.setFont(new Font("Arial", Font.PLAIN, 15));
 		jpMessage.setPreferredSize(preferredSize);
 
@@ -101,14 +109,34 @@ public class ClientChatForm {
 		jpInput.add(jpMessageInput);
 
 		// Add các thành phần chính vào
+		frame.setJMenuBar(jmenuBar);
 		frame.getContentPane().add(jscrollPane);
 		frame.getContentPane().add(jpInput);
 
 		// ======================= EVENTS =============================
 
+		jmniLogout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (socket != null) {
+					try {
+						System.out.println("Bạn đã ngắt kết nối ...");
+						socket.close();
+						frame.dispose();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
 		jbSendMsg.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				String msg = jtaInputField.getText();
+				if (msg.length() == 0 || msg.equals("\n")) {
+					return;
+				}
 				sendMessage(jtaInputField.getText());
 				jtaInputField.setText("");
 			}
@@ -162,24 +190,10 @@ public class ClientChatForm {
 						String fileSender = userChatName;
 						byte[] fileSenderBytes = fileSender.getBytes();
 
-						// Không thể add vào danh sách file lúc này, bởi vì chỉ có người gửi có data này
-						// (vì lưu trên memory)
+						fileToSend = null;
+						jlFileName.setText("Chưa chọn file");
+						
 						// Giờ phải gửi qua socket, lát nữa broadcast cho tất cả users
-
-//						ChatFile sentFile = new ChatFile(fileId, fileName, fileContentBytes, getFileExtension(fileName),
-//								userChatName);
-//						listFiles.add(sentFile);
-//						fileId++;
-
-//						System.out.println("Next file id: " + fileId);
-
-						// Gửi tên file và nội dung file
-						// Lưu ý: gửi một kích thước của file để server biết
-
-//						dos.write(sentFile);
-//						dos.writeInt(fileNameBytes.length);
-//						dos.write(fileNameBytes);
-
 						dos.writeInt(fileNameBytes.length);
 						dos.write(fileNameBytes);
 
@@ -205,18 +219,6 @@ public class ClientChatForm {
 		});
 
 		frame.pack();
-//        frame.setVisible(true);
-
-	}
-
-	private static String getFileExtension(String fileName) {
-		// not work with .tar.gz (something like that)
-		int i = fileName.lastIndexOf('.');
-		if (i > 0) {
-			return fileName.substring(i + 1);
-		} else {
-			return "No extension found.";
-		}
 	}
 
 	private void setupNetworking() {
@@ -456,21 +458,16 @@ public class ClientChatForm {
 
 		return jfFilePreview;
 	}
-//	end createFrame
 
-//	private static void appendColoredText(String text, Color bgColor) {
-//		JTextPane textPane = new JTextPane();
-//        StyledDocument doc = textPane.getStyledDocument();
-//        javax.swing.text.Style style = textPane.addStyle("coloredStyle", null);
-//
-//        StyleConstants.setBackground(style, bgColor);
-//
-//        try {
-//            doc.insertString(doc.getLength(), text, style);
-//        } catch (BadLocationException e) {
-//            e.printStackTrace();
-//        }
-//    }
+	private static String getFileExtension(String fileName) {
+		// not work with .tar.gz (something like that)
+		int i = fileName.lastIndexOf('.');
+		if (i > 0) {
+			return fileName.substring(i + 1);
+		} else {
+			return "No extension found.";
+		}
+	}
 
 	public void setVisible(boolean isVisible) {
 		this.frame.setVisible(isVisible);
