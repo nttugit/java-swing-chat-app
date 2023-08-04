@@ -101,25 +101,11 @@ public class ClientChatForm {
 		jpInput.add(jpMessageInput);
 
 		// Add các thành phần chính vào
-		JButton jbTest  = new JButton("Test");
 		frame.getContentPane().add(jscrollPane);
 		frame.getContentPane().add(jpInput);
-		frame.getContentPane().add(jbTest);
-		
-		
-		
+
 		// ======================= EVENTS =============================
 
-		jbTest.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for (ChatFile chatFile : listFiles) {
-					System.out.println(chatFile);
-				}
-			}
-		});
-		
 		jbSendMsg.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -244,7 +230,6 @@ public class ClientChatForm {
 		}
 	}
 
-
 	private void sendMessage(String message) {
 		try {
 			ChatMessage chatMessage = new ChatMessage(this.userChatName, message);
@@ -311,14 +296,14 @@ public class ClientChatForm {
 									fileSender);
 							System.out.println("Nhận được file từ broad cast" + chatFile);
 
-							// 
+							//
 							listFiles.add(chatFile);
 
 							// Xử lý khi nhận File, show UI, lưu vào danh sách File (để download được)
 							// Thiếu người gửi here
 							JLabel jlFileName = new JLabel(fileSender + ": " + fileName);
 							jpFileRow.add(jlFileName);
-							
+
 							jpFileRow.setBackground(Color.LIGHT_GRAY);
 
 							// Event để hiển thị preview file hoặc thông báo download
@@ -326,7 +311,7 @@ public class ClientChatForm {
 							jpFileRow.setName(fileId);
 							jpMessage.add(jpFileRow);
 //							jpFileRow
-							
+
 						}
 					}
 
@@ -387,7 +372,7 @@ public class ClientChatForm {
 					}
 				}
 			}
-			
+
 		};
 	}
 

@@ -12,39 +12,26 @@ import javax.swing.border.EmptyBorder;
 import model.ChatFile;
 
 public class Server {
-	final static String FILE_DIR = "D:\\";
-	private static final int PORT = 12345;
-//	private static Set<PrintWriter> clientWriters = new HashSet<>();
 	private static Set<DataOutputStream> clientDOSs = new HashSet<>();
 
-
-	public static void main(String[] args) throws IOException {
-		System.out.println("Chat Server is running on port " + PORT);
-		ServerSocket serverSocket = new ServerSocket(PORT);
-
+	public static void startServer(int port) throws IOException {
+		System.out.println("GutGutChat SERVER IS LISTENING ON PORT " + port);
+		ServerSocket serverSocket = new ServerSocket(port);
+		
+		// Luôn mở để lắng nghe client connect
 		while (true) {
 			new ClientHandler(serverSocket.accept()).start();
 		}
 	}
 
+
 	private static class ClientHandler extends Thread {
 		private Socket socket;
-//		private PrintWriter writer;
 		DataOutputStream dos;
 
 		public ClientHandler(Socket socket) {
 			this.socket = socket;
 		}
-
-		/**
-		 * Message gửi dạng text -> while readLine File, gửi dạng binary ->
-		 * dataInputStream
-		 * 
-		 * Làm sao biết gửi mesage hay File? -> giá trí đầu tiên là kiểu int là File Còn
-		 * không thì nếu là -1 thì là message -> nice
-		 * 
-		 * 
-		 */
 
 		public void run() {
 			try {
@@ -71,7 +58,6 @@ public class Server {
 						int fileNameLength = isMessage;
 						byte[] fileNameBytes = new byte[fileNameLength];
 						dis.readFully(fileNameBytes, 0, fileNameLength);
-//						String fileName = new String(fileNameBytes);
 						
 						int fileContentLength = dis.readInt();
 						if (fileContentLength > 0) {
@@ -117,7 +103,6 @@ public class Server {
 				}
 			}
 		}
-
 
 		private void broadcastPlainText(String message) {
 			synchronized (clientDOSs) {
